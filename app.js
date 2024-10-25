@@ -6,25 +6,14 @@ const Message = require('./models/Message');
 const User = require('./models/User');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
+const bcrypt = require('bcrypt'); // Import bcrypt 
 const path = require('path'); // Required for path handling
-const { Pool } = require('pg');   // PostgreSQL
 require('dotenv').config(); // Load environment variables
 
 const app = express();
 
-// Database setup
-const pool = new Pool({
-    user: process.env.DB_USER, 
-    host: 'localhost',
-    database: 'members_only', 
-    password: process.env.DB_PASSWORD, 
-    port: 5432, // Default PostgreSQL port
-});
+const pool = require('./config/db');
 
-// Test the connection
-pool.connect()
-    .then(() => console.log('Connected to the database'))
-    .catch(err => console.error('Connection error', err.stack));
 
 // Set the view engine to EJS
 app.set('view engine', 'ejs'); // This line sets EJS as the view engine
@@ -44,6 +33,31 @@ app.get('/login', (req, res) => {
     res.render('login',{ messages: {} }); // Render the register.ejs file
 });
 
+// Login POST Route
+app.post('/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        const user = await User.findByUsername(username); // Find user by username
+        if (!user) {
+            return res.status(401).send('Invalid username or password.'); // User not found
+        }
+
+        // Check password
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+            return res.status(401).send('Invalid username or password.'); // Password does not match
+        }
+
+        // Set up user session
+        req.session.userId = user.id; // Assuming you have a userId field in your User model
+        res.redirect('/'); // Redirect to the home page after successful login
+    } catch (error) {
+        console.error('Error logging in user:', error); // Log the error
+        res.status(500).send('Server error during login.');
+    }
+});
+
 // Registration GET Route
 app.get('/register', (req, res) => {
     res.render('register',{ messages: {} }); // Render the register.ejs file
@@ -51,31 +65,33 @@ app.get('/register', (req, res) => {
 
 // Registration POST Route
 app.post('/register', async (req, res) => {
-    const { firstName, lastName, username, password, confirmPassword } = req.body;
+    try {
+        const { firstName, lastName, username, password, confirmPassword } = req.body;
 
-    // Validate that passwords match
-    if (password !== confirmPassword) {
-        return res.status(400).send('Passwords do not match.');
+        // Validate that passwords match
+        if (password !== confirmPassword) {
+            return res.status(400).send('Passwords do not match.');
+        }
+
+        // Hash the password using bcrypt
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Create a new user instance using the User model
+        const newUser = await User.create({
+            first_name: firstName,
+            last_name: lastName,
+            username: username,
+            password: hashedPassword, // Use the hashed password
+            membership_status: false, // Default membership status
+            is_admin: false // Default admin status
+        });
+
+        res.redirect('/'); // Redirect after successful registration
+    } catch (error) {
+        console.error('Error registering user:', error); // Log the error
+        res.status(500).send('Server error during registration.');
     }
-
-    // Hash the password using bcrypt
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Create a new user instance
-    const newUser = new User({
-        first_name: firstName,
-        last_name: lastName,
-        username: username,
-        password: hashedPassword,
-        membership_status: false, // Default membership status
-        is_admin: false // Default admin status
-    });
-
-    // Save the user to the database
-    await newUser.save();
-    res.redirect('/'); // Redirect after successful registration
 });
-
 
 // Home route
 app.get('/', async (req, res) => {
