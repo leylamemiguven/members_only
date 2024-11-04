@@ -66,7 +66,7 @@ app.get('/register', (req, res) => {
 // Registration POST Route
 app.post('/register', async (req, res) => {
     try {
-        const { firstName, lastName, username, password, confirmPassword } = req.body;
+        const { firstName, lastName, username, password, confirmPassword, isAdmin } = req.body;
 
         // Validate that passwords match
         if (password !== confirmPassword) {
@@ -77,13 +77,13 @@ app.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         
         // Create a new user instance using the User model
-        const newUser = await User.create({
+        await User.create({
             first_name: firstName,
             last_name: lastName,
             username: username,
             password: hashedPassword, // Use the hashed password
-            membership_status: false, // Default membership status
-            is_admin: false // Default admin status
+            membership_status: false, // Set default membership status to false
+            is_admin: isAdmin ? true : false // Set admin status based on checkbox
         });
 
         res.redirect('/'); // Redirect after successful registration
@@ -101,6 +101,57 @@ app.get('/', async (req, res) => {
     } catch (error) {
         console.error(error); // Log the error for debugging
         res.status(500).send('Server Error');
+    }
+});
+
+// New Message GET Route
+app.get('/newMessage', (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/login'); // Redirect to login if not logged in
+    }
+    res.render('newMessage'); // Render the newMessage.ejs view
+});
+
+// New Message POST Route
+app.post('/messages', async (req, res) => {
+    try {
+        const { title, text } = req.body;
+        const authorId = req.session.userId; // Get the logged-in user's ID
+        const newMessage = await Message.create({
+            title: title,
+            text: text,
+            author_id: authorId,
+        });
+        res.redirect('/'); // Redirect to home after message creation
+    } catch (error) {
+        console.error('Error creating message:', error);
+        res.status(500).send('Server error during message creation.');
+    }
+});
+
+
+// Join Club GET Route
+app.get('/join', (req, res) => {
+    res.render('join', { messages: {} }); // Render the join.ejs view
+});
+
+// Join Club POST Route
+app.post('/join', async (req, res) => {
+    try {
+        const { passcode } = req.body;
+        const secretPasscode = 'yourSecretPasscode'; // Set your secret passcode here
+
+        if (passcode === secretPasscode) {
+            // Update the user's membership status
+            const userId = req.session.userId; // Get the logged-in user's ID
+            await pool.query('UPDATE users SET membership_status = $1 WHERE id = $2', [true, userId]);
+            res.redirect('/'); // Redirect after successfully joining
+        } else {
+            res.status(400).send('Invalid passcode.'); // Handle incorrect passcode
+        }
+    } catch (error) {
+        console.error('Error joining the club:', error);
+        res.status(500).send('Server error during membership update.');
     }
 });
 
