@@ -3,15 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../public/styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <title>Members Only Club</title>
 </head>
 <body>
-    <h1>Welcome to the Members Only Club</h1>
-    <% if (user) { %>
-        <a href="/newMessage">Create a New Message</a>
-    <% } %>
-    
+    <div class="first-greeting">
+        <% if (user) { %>
+            <h1>Welcome <%= user.first_name %> <%= user.last_name %>!</h1>
+            <p>Explore the latest anonymous posts from our community.</p>
+            <div class="login-signup">
+                <a href="/newMessage">Create a New Message</a>
+                <p class="login-signup-item"> OR </p>         
+                <a href="/join">Join the Club</a>
+            </div>
+        <% } else { %>
+            <h1>Welcome to the Members Only Club</h1>
+            <p>Log in to explore and create new anonymous posts.</p>
+            <div class="login-signup">
+                <a class="login-signup-item" href="login">Login</a>
+                <p class="login-signup-item"> OR </p>         
+                <a class="login-signup-item"href="register">Sign Up</a>
+            </div>
+        <% } %>
+
+
+    </div>
     <!-- Existing code to display messages -->
     <!-- <% messages.forEach(message => { %>
         <div>
@@ -24,6 +40,7 @@
             <% } %>
         </div>
     <% }); %> -->
+    <h2>Messages</h2>
     <% messages.forEach(message => { %>
         <div>
             <h2><%= message.title %></h2>
@@ -45,6 +62,5 @@
             <% } %>
         </div>
     <% }); %>
-    <a href="register">Sign Up</a>
 </body>
 </html>

@@ -1,50 +1,77 @@
 const express = require('express');
+const router = express.Router();
 const Message = require('../models/Message');
 const User = require('../models/User');
-const router = express.Router();
+const pool = require('../config/db');
 
-// Render new message form
-router.get('/messages/new', (req, res) => {
-    if (req.isAuthenticated()) {
-        res.render('newMessage', { messages: req.flash('error') });
-    } else {
-        res.redirect('/login');
-    }
-});
-
-// Handle new message submission
-router.post('/messages', async (req, res) => {
-    const { title, text } = req.body;
-
-    const newMessage = new Message({
-        title,
-        text,
-        author: req.user._id // Assuming req.user is populated by Passport
-    });
-
+// Home route
+router.get('/', async (req, res) => {
     try {
-        await newMessage.save();
-        res.redirect('/'); // Redirect to home page after saving
-    } catch (error) {
-        req.flash('error', 'Error creating message');
-        res.redirect('/messages/new');
-    }
-});
+        const messages = await pool.query('SELECT * FROM messages'); // Query the messages table
+        const userId = req.session.userId; // Get the user ID from the session
+        let user = null;
 
-
-// Delete message route
-router.delete('/messages/:id', async (req, res) => {
-    if (req.user && req.user.isAdmin) {
-        try {
-            await Message.findByIdAndDelete(req.params.id);
-            res.redirect('/');
-        } catch (error) {
-            res.status(500).send('Server Error');
+        // Fetch user details if logged in
+        if (userId) {
+            const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+            user = userResult.rows[0]; // Get the user data
         }
-    } else {
-        res.status(403).send('Forbidden');
+
+        res.render('home', { messages: messages.rows, user: user }); // Pass user data to the view
+    } catch (error) {
+        console.error(error); // Log the error for debugging
+        res.status(500).send('Server Error');
     }
 });
 
+// New Message GET Route
+router.get('/newMessage', (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/login'); // Redirect to login if not logged in
+    }
+    res.render('newMessage', { messages: {} }); // Render the newMessage.ejs view
+});
 
-module.exports = router;
+// New Message POST Route
+router.post('/', async (req, res) => {
+    try {
+        const { title, text } = req.body;
+        const authorId = req.session.userId; // Get the logged-in user's ID
+        const createdAt = new Date(); // Get the current date and time
+
+        const newMessage = await Message.create({
+            title: title,
+            text: text,
+            author_id: authorId,
+            created_at: createdAt // Save the current date
+        });
+        res.redirect('/'); // Redirect to home after message creation
+    } catch (error) {
+        console.error('Error creating message:', error);
+        res.status(500).send('Server error during message creation.');
+    }
+});
+
+// Delete Message Route
+router.delete('/:id', async (req, res) => {
+    try {
+        const messageId = req.params.id;
+        const userId = req.session.userId; // Get the logged-in user's ID
+        
+        // Check if user is an admin
+        const user = await User.findById(userId);
+        if (!user.is_admin) {
+            return res.status(403).send('Unauthorized to delete this message.');
+        }
+
+        const query = 'DELETE FROM messages WHERE id = $1;';
+        await pool.query(query, [messageId]);
+        
+        res.redirect('/'); // Redirect after deletion
+    } catch (error) {
+        console.error('Error deleting message:', error);
+        res.status(500).send('Server error during message deletion.');
+    }
+});
+
+module.exports = router; // Export the router
