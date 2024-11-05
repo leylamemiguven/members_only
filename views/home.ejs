@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../public/styles.css">
     <title>Members Only Club</title>
 </head>
 <body>
     <h1>Welcome to the Members Only Club</h1>
     <% if (user) { %>
-        <p>Hello, <%= user.firstName %>! <a href="/messages/new">Create a new message</a></p>
-    <% } %>
-    <% if (user) { %>
         <a href="/newMessage">Create a New Message</a>
     <% } %>
     
     <!-- Existing code to display messages -->
-    <% messages.forEach(message => { %>
+    <!-- <% messages.forEach(message => { %>
         <div>
             <h2><%= message.title %></h2>
             <p><%= message.text %></p>
@@ -25,17 +23,22 @@
                 </form>
             <% } %>
         </div>
-    <% }); %>
-    <h2>Messages</h2>
+    <% }); %> -->
     <% messages.forEach(message => { %>
         <div>
             <h2><%= message.title %></h2>
             <p><%= message.text %></p>
-            <% if (user) { %>
-                <p>Author: <%= message.author_id %></p> <!-- Replace with actual author name retrieval -->
-                <p>Date: <%= message.created_at %></p> <!-- Ensure you have a timestamp field in your messages table -->
+            
+            <% if (user && user.membership_status) { %> <!-- Show author and date only to members -->
+                <% if (message.author_id) { %> <!-- Only show Author if it exists -->
+                    <p>Author: <%= message.author_id %></p> <!-- Replace with actual author name retrieval -->
+                <% } %>
+                <% if (message.created_at) { %> <!-- Only show Date if it exists -->
+                    <p>Date: <%= message.created_at.toLocaleString() %></p> <!-- Format date if needed -->
+                <% } %>
             <% } %>
-            <% if (user && user.is_admin) { %>
+            
+            <% if (user && user.is_admin) { %> <!-- Show delete button only to admin -->
                 <form action="/messages/<%= message.id %>?_method=DELETE" method="POST">
                     <button type="submit">Delete Message</button>
                 </form>

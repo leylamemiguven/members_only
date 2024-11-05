@@ -11,14 +11,11 @@ const path = require('path'); // Required for path handling
 require('dotenv').config(); // Load environment variables
 
 const app = express();
-
 const pool = require('./config/db');
-
 
 // Set the view engine to EJS
 app.set('view engine', 'ejs'); // This line sets EJS as the view engine
 app.set('views', path.join(__dirname, 'views')); // This line sets the views directory
-
 
 // Middleware setup
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -30,7 +27,7 @@ app.use(flash());
 
 // Login GET Route
 app.get('/login', (req, res) => {
-    res.render('login',{ messages: {} }); // Render the register.ejs file
+    res.render('login', { messages: {} }); // Render the login.ejs file
 });
 
 // Login POST Route
@@ -60,7 +57,7 @@ app.post('/login', async (req, res) => {
 
 // Registration GET Route
 app.get('/register', (req, res) => {
-    res.render('register',{ messages: {} }); // Render the register.ejs file
+    res.render('register', { messages: {} }); // Render the register.ejs file
 });
 
 // Registration POST Route
@@ -97,7 +94,16 @@ app.post('/register', async (req, res) => {
 app.get('/', async (req, res) => {
     try {
         const messages = await pool.query('SELECT * FROM messages'); // Query the messages table
-        res.render('home', { messages: messages.rows, user: req.user }); // Use messages.rows for the result
+        const userId = req.session.userId; // Get the user ID from the session
+        let user = null;
+
+        // Fetch user details if logged in
+        if (userId) {
+            const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+            user = userResult.rows[0]; // Get the user data
+        }
+
+        res.render('home', { messages: messages.rows, user: user }); // Pass user data to the view
     } catch (error) {
         console.error(error); // Log the error for debugging
         res.status(500).send('Server Error');
@@ -109,7 +115,7 @@ app.get('/newMessage', (req, res) => {
     if (!req.session.userId) {
         return res.redirect('/login'); // Redirect to login if not logged in
     }
-    res.render('newMessage'); // Render the newMessage.ejs view
+    res.render('newMessage', { messages: {} }); // Pass an empty messages object
 });
 
 // New Message POST Route
@@ -117,10 +123,13 @@ app.post('/messages', async (req, res) => {
     try {
         const { title, text } = req.body;
         const authorId = req.session.userId; // Get the logged-in user's ID
+        const createdAt = new Date(); // Get the current date and time
+
         const newMessage = await Message.create({
             title: title,
             text: text,
             author_id: authorId,
+            created_at: createdAt // Save the current date
         });
         res.redirect('/'); // Redirect to home after message creation
     } catch (error) {
@@ -128,7 +137,6 @@ app.post('/messages', async (req, res) => {
         res.status(500).send('Server error during message creation.');
     }
 });
-
 
 // Join Club GET Route
 app.get('/join', (req, res) => {
@@ -152,6 +160,29 @@ app.post('/join', async (req, res) => {
     } catch (error) {
         console.error('Error joining the club:', error);
         res.status(500).send('Server error during membership update.');
+    }
+});
+
+
+// Delete Message Route
+app.delete('/messages/:id', async (req, res) => {
+    try {
+        const messageId = req.params.id;
+        const userId = req.session.userId; // Get the logged-in user's ID
+        
+        // Check if user is an admin
+        const user = await User.findById(userId);
+        if (!user.is_admin) {
+            return res.status(403).send('Unauthorized to delete this message.');
+        }
+
+        const query = 'DELETE FROM messages WHERE id = $1;';
+        await pool.query(query, [messageId]);
+        
+        res.redirect('/'); // Redirect after deletion
+    } catch (error) {
+        console.error('Error deleting message:', error);
+        res.status(500).send('Server error during message deletion.');
     }
 });
 
