@@ -33,20 +33,16 @@
         <div class="message-box">
             <h2><%= message.title %></h2>
             <p><%= message.text %></p>
+            <p>Date: <%= message.created_at.toLocaleString() %></p> 
             
             <% if (user && user.membership_status) { %> <!-- Show author and date only to members -->
                 <% if (message.author_id) { %> <!-- Only show Author if it exists -->
                     <p>Author Id: <%= message.author_id %></p> 
                 <% } %>
-                <% if (message.created_at) { %> <!-- Only show Date if it exists -->
-                    <p>Date: <%= message.created_at.toLocaleString() %></p> 
-                <% } %>
             <% } %>
             
             <% if (user && user.is_admin) { %> <!-- Show delete button only to admin -->
-                <% if (message.created_at) { %> 
-                    <p>Date: <%= message.created_at.toLocaleString() %></p> 
-                <% } %>
+
                 <form action="/messages/<%= message.id %>?_method=DELETE" method="POST">
                     <button type="submit">Delete Message</button>
                 </form>

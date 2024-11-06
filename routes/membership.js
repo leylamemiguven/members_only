@@ -1,32 +1,28 @@
 const express = require('express');
-const User = require('../models/User');
 const router = express.Router();
+const pool = require('../config/db'); 
 
-// Render membership page
-router.get('/membership', (req, res) => {
-    res.render('membership', { messages: req.flash('error') });
+// Join Club GET Route
+router.get('/join', (req, res) => {
+    res.render('join', { messages: {} });
 });
 
-// Handle membership passcode submission
-router.post('/membership', async (req, res) => {
-    const { username, passcode } = req.body; // Make sure to collect the username as well
-    const SECRET_PASSCODE = 'your_secret_passcode'; // Change this to your actual secret
-
+// Join Club POST Route
+router.post('/join', async (req, res) => {
     try {
-        const user = await User.findOne({ username });
-
-        if (user && passcode === SECRET_PASSCODE) {
-            user.membershipStatus = true;
-            await user.save();
-            res.redirect('/'); // Redirect to home or dashboard
+        const { passcode } = req.body;
+        const secretPasscode = 'superSecretPasscode'; 
+        if (passcode === secretPasscode) {
+            const userId = req.session.userId; // Get the logged-in user's ID
+            await pool.query('UPDATE users SET membership_status = $1 WHERE id = $2', [true, userId]);
+            res.redirect('/'); // Redirect after successfully joining
         } else {
-            req.flash('error', 'Invalid passcode or username');
-            res.redirect('/membership');
+            res.status(400).send('Invalid passcode.'); // Handle incorrect passcode
         }
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Server Error');
+        console.error('Error joining the club:', error);
+        res.status(500).send('Server error during membership update.');
     }
 });
 
-module.exports = router;
+module.exports = router; 

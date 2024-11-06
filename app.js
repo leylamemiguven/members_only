@@ -13,6 +13,7 @@ const pool = require('./config/db');
 // Import routes
 const authRoutes = require('./routes/auth');
 const messageRoutes = require('./routes/messages');
+const membershipRoutes = require('./routes/membership');
 
 // Set the view engine to EJS
 app.set('view engine', 'ejs'); // This line sets EJS as the view engine
@@ -32,6 +33,8 @@ app.use(express.static(path.join(__dirname, 'public'))); // For CSS and other st
 // Use routes
 app.use('/', messageRoutes); // Use message routes for home and message related routes
 app.use('/', authRoutes); // Use authentication routes
+app.use('/', membershipRoutes); // Use authentication routes
+
 
 // Server listening
 const PORT = process.env.PORT || 3000; // You can change the port if needed
