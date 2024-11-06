@@ -54,6 +54,7 @@ router.post('/', async (req, res) => {
 
 // Delete Message Route
 router.delete('/:id', async (req, res) => {
+    console.log('Attempting to delete message with ID:', req.params.id);
     try {
         const messageId = req.params.id;
         const userId = req.session.userId; // Get the logged-in user's ID

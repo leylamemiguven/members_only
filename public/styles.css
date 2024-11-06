@@ -1,5 +1,10 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+
 body{
     margin: 2em;
+    font-family: "Nunito", sans-serif;
 
 }
 
@@ -23,4 +28,11 @@ body{
 
 .login-signup-item{
     padding: 0 1em;
+}
+
+.message-box{
+    border:2px solid grey;
+    margin:0.5em;
+    padding: 1.5em;
+    border-radius:15px;
 }
