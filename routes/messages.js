@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Message = require('../models/Message'); // Your Message model
-const pool = require('../config/db'); // Your database connection
+const Message = require('../models/Message'); // Message model
+const pool = require('../config/db'); // database connection
 
 
 // Home route (GET)
