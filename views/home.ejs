@@ -37,7 +37,10 @@
             <p>Date: <%= message.created_at.toLocaleString() %></p> 
             
             <% if (user && user.membership_status) { %> 
-     
+                <% if (message.author_id) { %> 
+        
+                    <p>Author Id: <%= message.author_id %></p> 
+                <% } %>
             <% } %>
             
             <% if (user && user.is_admin) { %> <!-- Show delete button only to admin -->
