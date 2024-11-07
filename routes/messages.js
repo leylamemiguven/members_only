@@ -7,20 +7,24 @@ const pool = require('../config/db'); // database connection
 // Home route (GET)
 router.get('/', async (req, res) => {
     try {
-        const messages = await pool.query('SELECT * FROM messages'); // Fetch messages from the database
-        const userId = req.session.userId; // Get the logged-in user's ID
+        const messagesResult = await pool.query('SELECT * FROM messages');
+        const messages = messagesResult.rows; // Fetch all messages
+
+        // Get user ID from session
+        const userId = req.session.userId; 
         let user = null;
 
-        // Fetch user details if logged in
+        // Fetch user data if logged in
         if (userId) {
             const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
             user = userResult.rows[0]; // Get the user data
         }
 
-        res.render('home', { messages: messages.rows, user: user }); // Render home view with messages and user data
+        // Render the home page, passing messages (could be empty) and user data
+        res.render('home', { messages, user });
     } catch (error) {
-        console.error('Error fetching messages:', error); // Log any errors
-        res.status(500).send('Server error fetching messages.'); // Handle errors
+        console.error('Error fetching messages:', error);
+        res.status(500).send('Server error fetching messages.');
     }
 });
 // New Message GET Route

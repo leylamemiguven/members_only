@@ -30,26 +30,34 @@
 
     </div>
     <h2>Messages</h2>
-    <% messages.forEach(message => { %>
-        <div class="message-box">
-            <h2><%= message.title %></h2>
-            <p><%= message.text %></p>
-            <p>Date: <%= message.created_at.toLocaleString() %></p> 
+    
+    <% if (messages.length > 0) { %>
+        <% messages.forEach(message => { %>
+            <div class="message-box">
+                <h2><%= message.title %></h2>
+                <p><%= message.text %></p>
+                <p>Date: <%= message.created_at.toLocaleString() %></p> 
+                
+                <% if (user && user.membership_status) { %> 
+                    <% if (message.author_id) { %> 
             
-            <% if (user && user.membership_status) { %> 
-                <% if (message.author_id) { %> 
-        
-                    <p>Author Id: <%= message.author_id %></p> 
+                        <p>Author Id: <%= message.author_id %></p> 
+                    <% } %>
                 <% } %>
-            <% } %>
-            
-            <% if (user && user.is_admin) { %> <!-- Show delete button only to admin -->
+                
+                <% if (user && user.is_admin) { %> <!-- Show delete button only to admin -->
+    
+                    <form action="/messages/<%= message.id %>?_method=DELETE" method="POST">
+                        <button type="submit">Delete Message</button>
+                    </form>
+                <% } %>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <p>No messages to display at the moment.</p>
+    <% } %>
 
-                <form action="/messages/<%= message.id %>?_method=DELETE" method="POST">
-                    <button type="submit">Delete Message</button>
-                </form>
-            <% } %>
-        </div>
-    <% }); %>
+
+   
 </body>
 </html>

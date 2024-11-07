@@ -33,7 +33,7 @@ app.use(express.static(path.join(__dirname, 'public'))); // For CSS and other st
 // Use routes
 app.use('/', messageRoutes); // Use message routes for home and message related routes
 app.use('/', authRoutes); // Use authentication routes
-app.use('/', membershipRoutes); // Use authentication routes
+app.use('/', membershipRoutes); // Use membership routes
 
 
 // Server listening
