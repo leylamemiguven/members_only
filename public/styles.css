@@ -11,8 +11,41 @@ body{
 
 a{
     text-decoration: none;
-    color:white;
     
+}
+
+button{
+    background: rgb(145, 255, 255);
+    border-radius: 15px;
+    border: none;
+    padding: 0.5em 1em;
+    font-family: "Nunito", sans-serif;
+}
+
+label{
+    font-weight: 400;
+}
+
+input, textarea{
+    font-family: "Nunito", sans-serif;
+    border: 1px solid rgb(111, 0, 255);
+    background:rgb(228, 207, 255);
+    border-radius:15px;
+    padding: 0.5em;
+    width: 20em;
+    margin-bottom: 0.5em;
+}
+
+textarea{
+    width: 100%;
+}
+
+
+form{
+    display:flex;
+    flex-direction: column;
+    justify-content: 2em;
+
 }
 
 
@@ -40,9 +73,23 @@ a{
     padding: 0 1em;
 }
 
+.login-signup-form{
+    display:flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    /* margin-top: 30%; */
+
+}
+
 .message-box{
-    border:2px solid grey;
+    border: 2px solid rgb(111, 0, 255);
     margin:0.5em;
     padding: 1.5em;
     border-radius:15px;
+}
+
+.isAdmin{
+    display:flex;
+    
 }

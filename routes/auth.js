@@ -12,8 +12,8 @@ router.get('/login', (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const user = await User.findByUsername(username); // Adjust based on your model
-
+        const user = await User.findByUsername(username); // 
+        
         if (!user) {
             return res.status(401).send('Invalid username or password.');
         }

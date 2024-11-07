@@ -12,17 +12,18 @@
             <h1>Welcome <%= user.first_name %> <%= user.last_name %>!</h1>
             <p>Explore the latest anonymous posts from our community.</p>
             <div class="login-signup">
-                <a href="/newMessage">Create a New Message</a>
-                <p class="login-signup-item"> OR </p>         
-                <a href="/join">Join the Club</a>
+                <button><a href="/newMessage">Create a New Message</a></button>  
+                <% if (!user.membership_status) { %>    
+                <button><a href="/join">Join the Club</a></button>
+                <% } %>
             </div>
         <% } else { %>
             <h1>Welcome to the Members Only Club</h1>
             <p>Log in to explore and create new anonymous posts.</p>
             <div class="login-signup">
-                <a class="login-signup-item" href="login">Login</a>
+                <button><a class="login-signup-item" href="login">Login</a></button>
                 <p class="login-signup-item"> OR </p>         
-                <a class="login-signup-item"href="register">Sign Up</a>
+                <button><a class="login-signup-item"href="register">Sign Up</a>
             </div>
         <% } %>
 
